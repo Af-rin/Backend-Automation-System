@@ -12,7 +12,13 @@ def custom_openapi(app):
         """,
         routes=app.routes,
     )
-    
+
+    # Author / Maintainer info
+    openapi_schema["info"]["contact"] = {
+        "name": "Af-rin",
+        "url": "https://github.com/Af-rin",  
+    }
+
     if "components" not in openapi_schema:
             openapi_schema["components"] = {}
     openapi_schema["components"]["securitySchemes"] = {
