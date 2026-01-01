@@ -1,0 +1,21 @@
+<svg width="260" height="80" viewBox="0 0 260 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22C55E"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="260" height="80" rx="12" fill="#0F172A"/>
+
+  <text
+    x="30"
+    y="55"
+    fill="url(#textGradient)"
+    font-size="48"
+    font-family="cursive, 'Brush Script MT', 'Segoe Script', 'Pacifico', serif"
+    font-weight="500"
+    letter-spacing="1">
+    Af-rin
+  </text>
+</svg>

@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+python-decouple
+sqlalchemy
+psycopg2
+pydantic
+pydantic-settings
