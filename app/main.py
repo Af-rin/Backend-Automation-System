@@ -9,6 +9,7 @@ from app.middlewares.payload_limit_middleware import PayloadLimitMiddleware
 from app.helpers.utils.custom_openapi import custom_openapi
 from app.api.health import router as health_router
 from fastapi.staticfiles import StaticFiles
+from app.connections.db_connector import init_db, shutdown_db
 
 setup_logging()
 
@@ -50,6 +51,13 @@ async def startup_event():
     print(
         f"Base URL: {base_url}, Swagger Docs: {base_url}/docs, ReDoc Docs: {base_url}/redoc"
     )
+    # db initialize
+    init_db()
+
+@app.on_event("shutdown")
+def shutdown():
+    # graceful shutdown
+    shutdown_db()
 
 # Health check router
 app.include_router(prefix=f"{base_router}", router=health_router)
