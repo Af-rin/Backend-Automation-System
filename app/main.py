@@ -10,6 +10,7 @@ from app.helpers.utils.custom_openapi import custom_openapi
 from app.api.health import router as health_router
 from fastapi.staticfiles import StaticFiles
 from app.connections.db_connector import init_db, shutdown_db
+from app.api.routers.auth_route import auth_router
 
 setup_logging()
 
@@ -61,6 +62,8 @@ def shutdown():
 
 # Health check router
 app.include_router(prefix=f"{base_router}", router=health_router)
+# Auth router
+app.include_router(prefix=f"{base_router}/auth", router=auth_router)
 
 # Common exception handler
 app.exception_handler(Exception)

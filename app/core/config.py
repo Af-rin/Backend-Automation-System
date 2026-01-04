@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     API_PREFIX : str = config("API_PREFIX", default = "/api/v2")
     PORT : int = config("PORT", default = 5000)
     DATABASE_URL: str = config("DATABASE_URL", default="postgresql://postgres:postgres@127.0.0.1:5432/backend_auto_system")
+    REGISTRATION_TOKEN: str = config("REGISTRATION_TOKEN", default = None)
 
     class Config:
         env_file = ".env"
