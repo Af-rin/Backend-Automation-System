@@ -1,13 +1,26 @@
-
-from pydantic_settings import BaseSettings
-from decouple import config
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    BASE_URL : str = config("BASE_URL", default = "http://localhost:5000")
-    API_PREFIX : str = config("API_PREFIX", default = "/api/v2")
-    PORT : int = config("PORT", default = 5000)
-    DATABASE_URL: str = config("DATABASE_URL", default="postgresql://postgres:postgres@127.0.0.1:5432/backend_auto_system")
-    REGISTRATION_TOKEN: str = config("REGISTRATION_TOKEN", default = None)
+    # App
+    BASE_URL: str = "http://localhost:5000"
+    API_PREFIX: str = "/api/v2"
+    PORT: int = 5000
 
-    class Config:
-        env_file = ".env"
+    # Database
+    DATABASE_URL: str = "postgresql://postgres:postgres@127.0.0.1:5432/backend_auto_system"
+
+    # Auth
+    REGISTRATION_TOKEN: str | None = None
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = "HS256"
+    ENCRYPTION_KEY: str
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="forbid",   
+        case_sensitive=False
+    )
+
+
+settings = Settings()

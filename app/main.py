@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import Settings 
+from app.core.config import settings 
 import uvicorn
+from app.helpers.error_handler.validation_error_handler import validation_exception_handler
 from app.helpers.loggers.logging_config import setup_logging
 from app.middlewares.logging_middleware import RotationalLoggerMiddleware
 from app.middlewares.timeout_middleware import TimeoutMiddleware
@@ -11,6 +12,7 @@ from app.api.health import router as health_router
 from fastapi.staticfiles import StaticFiles
 from app.connections.db_connector import init_db, shutdown_db
 from app.api.routers.auth_route import auth_router
+from fastapi.exceptions import RequestValidationError
 
 setup_logging()
 
@@ -20,7 +22,7 @@ app = FastAPI(
     description="Production-ready FastAPI backend for automation workflows with authentication, PostgreSQL, and AWS deployment.",
     version="1.0.0",
 )
-base_router = Settings().API_PREFIX
+base_router = settings.API_PREFIX
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
@@ -47,7 +49,7 @@ app.openapi = lambda: custom_openapi(app=app)
 
 @app.on_event("startup")
 async def startup_event():
-    base_url = Settings().BASE_URL
+    base_url = settings.BASE_URL
     print(f"FastAPI application '{app.title}' is now running!")
     print(
         f"Base URL: {base_url}, Swagger Docs: {base_url}/docs, ReDoc Docs: {base_url}/redoc"
@@ -65,11 +67,16 @@ app.include_router(prefix=f"{base_router}", router=health_router)
 # Auth router
 app.include_router(prefix=f"{base_router}/auth", router=auth_router)
 
+# custom validation error
+@app.exception_handler(RequestValidationError)
+async def custom_validation_exception_handler(request, exc):
+    return validation_exception_handler(request, exc)
+
 # Common exception handler
 app.exception_handler(Exception)
 
 if __name__ == "__main__":
-    port = int(Settings().PORT)
+    port = int(settings.PORT)
     uvicorn.run("api.main:app", host = "0.0.0.0", port = port, reload=True)
 
 

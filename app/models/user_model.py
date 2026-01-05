@@ -12,5 +12,6 @@ class UserModel(Base):
     role = Column(Enum(userRoles, name="user_roles_enum"), nullable=False, default='USER')
     is_active = Column(Boolean, nullable=False, default=True)
     last_login = Column(DateTime(timezone=True), nullable=True, default=None)
+    access_token = Column(String, nullable=True, default=None)
     created_at = Column(DateTime(timezone=True), default=func.now())  
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())

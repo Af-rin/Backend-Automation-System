@@ -1,13 +1,13 @@
 from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from app.core.config import Settings
+from app.core.config import settings
 import signal
 import sys
 from sqlalchemy.exc import SQLAlchemyError
 
 Base = declarative_base()
-DATABASE_URL = Settings().DATABASE_URL
+DATABASE_URL = settings.DATABASE_URL
 engine = None
 SessionLocal = None
 

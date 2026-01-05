@@ -28,3 +28,20 @@ class authGetUsersResponse(BaseModel):
     error: bool
     data: Union[authGetUsersDataModel, authGetUsersErrorDataModel]
 
+
+class authLoginDataModel(BaseModel):
+    access_token: str
+    token_type: str
+    expires_in_utc: str
+
+class authLoginErrorDataModel(BaseModel):
+    message: str
+
+class authLoginResponse(BaseModel):
+    error: bool
+    data: Union[authLoginDataModel, authLoginErrorDataModel]
+    
+class authLoginRequest(BaseModel):
+    username: str
+    email: str
+    password: str

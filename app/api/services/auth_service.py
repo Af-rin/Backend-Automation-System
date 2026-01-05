@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from fastapi import status, Depends
+from app.helpers.utils.jwt_util import create_access_token
 from app.models.user_model import UserModel
 from app.helpers.schema_validations.auth_schema import authRegisterUsersRequest
 from app.helpers.utils.password_hash import pwd_context
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Session
 async def register_user(data: authRegisterUsersRequest, db: Session):
     try:
         # Only admin can register 
-        username = data.get('userName') or data.get('username')  or data.get('user_name')
+        username = data.get('userName') or data.get('username') or data.get('user_name')
         email = data.get('email')
         password = data.get('password')
         register_token = data.get('registration_token')
@@ -75,7 +76,7 @@ async def register_user(data: authRegisterUsersRequest, db: Session):
 
 async def get_users_list(db: Session):
     try:
-        # Note: role-based restriction (only admin can fetch all users) - TODO: handled in auth middleware
+        # Note: role-based restriction (only admin can fetch all users) - handled in auth middleware
 
         # Fetch all users
         users = db.query(UserModel).all()
@@ -122,3 +123,88 @@ async def get_users_list(db: Session):
             },
         }
         return response
+
+async def login_user(data: dict, db: Session):
+    try:
+        username = data.get("username") or data.get("userName") or data.get('user_name')
+        email = data.get("email")
+        password = data.get("password")
+
+        # Validate required fields
+        if not username or not email or not password:
+            return {
+                "status_code": status.HTTP_400_BAD_REQUEST,
+                "content": {
+                    "error": True,
+                    "data": {"message": "Invalid credentials."},
+                },
+            }
+
+        # Fetch user
+        user = (
+            db.query(UserModel)
+            .filter(UserModel.user_name == username, UserModel.email == email)
+            .first()
+        )
+
+        if not user:
+            return {
+                "status_code": status.HTTP_401_UNAUTHORIZED,
+                "content": {
+                    "error": True,
+                    "data": {"message": "Invalid credentials."},
+                },
+            }
+
+        # Verify password
+        if not pwd_context.verify(password, user.password):
+            return {
+                "status_code": status.HTTP_401_UNAUTHORIZED,
+                "content": {
+                    "error": True,
+                    "data": {"message": "Invalid credentials."},
+                },
+            }
+
+        # Generate JWT
+        token_payload = {
+            "sub": str(user.id),
+            "username": user.user_name,
+            "email": user.email,
+            "role": user.role.value,
+        }
+
+        token, exp = create_access_token(token_payload)
+        print(token, exp)
+
+        # Update login metadata
+        user.access_token = token
+        user.last_login = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc)
+
+        db.commit()
+        db.refresh(user)
+
+        return {
+            "status_code": status.HTTP_200_OK,
+            "content": {
+                "error": False,
+                "data": {
+                    "access_token": token,
+                    "token_type": "bearer",
+                    "expires_in_utc": exp,
+                },
+            },
+        }
+
+    except Exception as e:
+        db.rollback()
+        print(f"Error while logging in :: {e}")
+
+        return {
+            "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            "content": {
+                "error": True,
+                "data": {"message": "Internal server error while logging in."},
+            },
+        }

@@ -7,3 +7,5 @@ pydantic
 pydantic-settings
 passlib
 PyJWT
+python-jose
+cryptography
