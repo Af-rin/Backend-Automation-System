@@ -17,5 +17,5 @@ def decrypt(data: str) -> str:
 
 def is_encryption_required(url: str) -> bool:
     # Protected urls
-    required_urls = ["/register", "/login", "/logout"]
+    required_urls = ["/registerUsers", "/login", "/logout"]
     return any(required_url in url for required_url in required_urls)
