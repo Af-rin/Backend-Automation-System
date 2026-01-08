@@ -8,7 +8,7 @@ from app.middlewares.logging_middleware import RotationalLoggerMiddleware
 from app.middlewares.timeout_middleware import TimeoutMiddleware
 from app.middlewares.payload_limit_middleware import PayloadLimitMiddleware
 from app.helpers.utils.custom_openapi import custom_openapi
-from app.api.health import router as health_router
+from app.api.routers.health_route import router as health_router
 from fastapi.staticfiles import StaticFiles
 from app.connections.db_connector import init_db, shutdown_db
 from app.api.routers.auth_route import auth_router
