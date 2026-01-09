@@ -1,13 +1,16 @@
 from fastapi import status, Depends
 from fastapi.responses import JSONResponse
 from app.api.services.auth_service import (
-    register_user, get_users_list, login_user
+    register_user, get_users_list, login_user,
+    get_user_profile
 )
 from app.helpers.schema_validations.auth_schema import (
     authRegisterUsersRequest, authLoginRequest
 )
 from sqlalchemy.orm import Session
 from app.connections.db_connector import get_db
+from app.middlewares.auth_middleware import get_current_user
+from app.models.user_model import UserModel
 
 async def register(payload: authRegisterUsersRequest, db: Session = Depends(get_db)):
     try:
@@ -68,5 +71,25 @@ async def login(payload: authLoginRequest, db: Session = Depends(get_db)):
                 content={
                     "error": True,
                     "data": {"message": "Internal server error while  trying to login."},
+                },
+            )
+    
+async def user_profile(current_user: UserModel = Depends(get_current_user), db: Session = Depends(get_db)):
+    try:
+        response_data = await get_user_profile(data=current_user, db=db)
+        return JSONResponse(
+                status_code=response_data.get("status_code", 500),
+                content=response_data.get("content", {
+                    "error": True,
+                    "data": {"message": "Internal server error while trying to fetch current user."},
+                }),
+            )
+    except Exception as e:
+        print(f"Error while  trying to fetch me :: {str(e)}")
+        return JSONResponse(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                content={
+                    "error": True,
+                    "data": {"message": "Internal server error while trying to fetch me."},
                 },
             )

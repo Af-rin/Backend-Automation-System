@@ -208,3 +208,52 @@ async def login_user(data: dict, db: Session):
                 "data": {"message": "Internal server error while logging in."},
             },
         }
+    
+
+async def get_user_profile(data: dict, db: Session):
+    try:
+        # Fetch current user profile
+        user = (
+            db.query(UserModel)
+            .filter(UserModel.id == data.id)
+            .first())
+
+        if not user:
+            response = {
+                "status_code": status.HTTP_404_NOT_FOUND,
+                "content": {
+                    "error": True,
+                    "data": {"message": "No user found."},
+                },
+            }
+            return response
+
+        # Convert to dicts (Beanie returns Document objects)
+        user_list = {
+                "id": str(user.id),
+                "username": user.user_name,
+                "email": user.email,
+                "is_active": user.is_active,
+                "lastLogin": user.last_login.isoformat() if user.last_login else None,
+                "createdAt": user.created_at.isoformat() if user.created_at else None,
+            }
+
+        response = {
+            "status_code": status.HTTP_200_OK,
+            "content": {
+                "error": False,
+                "data": {"user": user_list},
+            },
+        }
+        return response
+
+    except Exception as e:
+        print(f"Error while fetching me user :: {str(e)}")
+        response = {
+            "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            "content": {
+                "error": True,
+                "data": {"message": "Internal server error while fetching me user."},
+            },
+        }
+        return response

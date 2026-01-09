@@ -35,7 +35,7 @@ def custom_openapi(app):
         "altText": "Af-rin Logo"
     }
 
-    PUBLIC_PATHS = {"/health", "/healthz", "/ping"}
+    PUBLIC_PATHS = {"/health", "/healthz", "/ping", "/login"}
 
     for path, methods in openapi_schema["paths"].items():
         if path in PUBLIC_PATHS:

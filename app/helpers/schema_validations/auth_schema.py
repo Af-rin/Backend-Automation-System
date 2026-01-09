@@ -34,14 +34,30 @@ class authLoginDataModel(BaseModel):
     token_type: str
     expires_in_utc: str
 
-class authLoginErrorDataModel(BaseModel):
+class ErrorDataModel(BaseModel):
     message: str
 
 class authLoginResponse(BaseModel):
     error: bool
-    data: Union[authLoginDataModel, authLoginErrorDataModel]
+    data: Union[authLoginDataModel, ErrorDataModel]
     
 class authLoginRequest(BaseModel):
     username: str
     email: str
     password: str
+
+
+class UserModel(BaseModel):
+    _id: str
+    username: str
+    email: str
+    is_active: bool
+    lastLogin: str
+    createdAt: str
+
+class MeModel(BaseModel):
+    user: UserModel
+
+class authMeResponse(BaseModel):
+    error: bool
+    data: Union[MeModel, ErrorDataModel]
