@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from fastapi import status, Depends
+from sqlalchemy import func
 from app.helpers.utils.jwt_util import create_access_token
 from app.models.user_model import UserModel
 from app.helpers.schema_validations.auth_schema import authRegisterUsersRequest
@@ -74,12 +75,23 @@ async def register_user(data: authRegisterUsersRequest, db: Session):
         return response
 
 
-async def get_users_list(db: Session):
+async def get_users_list(db: Session, page: int, items_per_page: int):
     try:
         # Note: role-based restriction (only admin can fetch all users) - handled in auth middleware
-
+        offset = (page - 1) * items_per_page
+        if offset<0:
+            raise Exception("Pagination Offset cannot be negative")
+        
+        total = db.query(func.count(UserModel.id)).scalar()
+        
         # Fetch all users
-        users = db.query(UserModel).all()
+        users = (
+            db.query(UserModel)
+            .order_by(UserModel.created_at.desc())
+            .offset(offset)
+            .limit(items_per_page)
+            .all()
+        )
 
         if not users:
             response = {
@@ -108,7 +120,15 @@ async def get_users_list(db: Session):
             "status_code": status.HTTP_200_OK,
             "content": {
                 "error": False,
-                "data": {"users": user_list, "message": "Users fetched successfully."},
+                "data": {
+                    "users": user_list, 
+                    "pagination":{
+                        "total": total,
+                        "page": page,
+                        "items_per_page": items_per_page,
+                    },
+                    "message": "Users fetched successfully."
+                },
             },
         }
         return response
@@ -119,7 +139,7 @@ async def get_users_list(db: Session):
             "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
             "content": {
                 "error": True,
-                "data": {"message": "Internal server error while fetching users."},
+                "data": {"message": f"Internal server error while fetching users :: {str(e)}"},
             },
         }
         return response

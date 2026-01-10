@@ -1,4 +1,4 @@
-from fastapi import status, Depends
+from fastapi import Query, status, Depends
 from fastapi.responses import JSONResponse
 from app.api.services.auth_service import (
     register_user, get_users_list, login_user,
@@ -33,9 +33,9 @@ async def register(payload: authRegisterUsersRequest, db: Session = Depends(get_
                 },
             )
 
-async def get_user(db: Session = Depends(get_db)):
+async def get_user(page: int = Query(1, ge=1), items_per_page: int = Query(20, ge=1, le=100),db: Session = Depends(get_db)):
     try:
-        response_data = await get_users_list(db=db)
+        response_data = await get_users_list(db=db, page=page, items_per_page=items_per_page,)
         return JSONResponse(
                 status_code=response_data.get("status_code", 500),
                 content=response_data.get("content", {

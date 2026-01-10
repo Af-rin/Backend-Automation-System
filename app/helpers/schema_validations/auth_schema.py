@@ -17,8 +17,14 @@ class authRegisterUsersRequest(BaseModel):
     registration_token: userRegisterToken
     role: userRoles
 
+class PaginationModel(BaseModel):
+    total_users: int
+    page: int
+    items_per_page: int
+
 class authGetUsersDataModel(BaseModel):
     users: list
+    pagination: PaginationModel
     message: str
 
 class authGetUsersErrorDataModel(BaseModel):
@@ -47,7 +53,7 @@ class authLoginRequest(BaseModel):
     password: str
 
 
-class UserModel(BaseModel):
+class UserDataModel(BaseModel):
     _id: str
     username: str
     email: str
@@ -56,7 +62,7 @@ class UserModel(BaseModel):
     createdAt: str
 
 class MeModel(BaseModel):
-    user: UserModel
+    user: UserDataModel
 
 class authMeResponse(BaseModel):
     error: bool
