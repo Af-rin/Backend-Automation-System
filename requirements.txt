@@ -9,3 +9,6 @@ passlib
 PyJWT
 python-jose
 cryptography
+pytest
+pytest-asyncio
+httpx

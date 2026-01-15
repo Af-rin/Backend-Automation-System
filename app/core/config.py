@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # App
     BASE_URL: str = "http://localhost:5000"
-    API_PREFIX: str = "/api/v2"
+    API_PREFIX: str = "/api/v1"
     PORT: int = 5000
 
     # Database
