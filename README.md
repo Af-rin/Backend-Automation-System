@@ -7,10 +7,12 @@ A **production‑ready FastAPI backend** designed for secure automation workflow
 ### Current Features
 * FastAPI‑based REST APIs
 * JWT Bearer authentication
+* Role-based access control (Admin/User)
 * Modular and clean project structure
 * PostgreSQL database support
 * OpenAPI / Swagger documentation
 * AWS‑friendly deployment architecture
+* Automated API tests with pytest
 
 ---
 
@@ -42,17 +44,30 @@ app/
 
 ---
 
-## Authentication
+## Authentication & Authorization Flow
 
-This system uses **JWT Bearer Authentication**.
+This system implements **JWT-based authentication with role-based authorization**.
 
-* Clients must pass the token in the header:
-
+### Workflow
+1. User logs in via `/auth/login`
+2. Credentials are validated against the database
+3. A signed JWT token is issued with:
+  * user_id
+  * role
+  * expiry
+4. Token is sent in the Authorization header for subsequent requests
 ```
 Authorization: Bearer <access_token>
 ```
+5. Middleware validates:
+  * Token existence
+  * Token signature
+  * Token expiration
+6. Role-based access is enforced at route level
 
-* Token validation is enforced on secured endpoints via dependency injection.
+### Example
+* ADMIN → can access /auth/getUsers
+* USER → forbidden (`403`)
 
 ---
 
@@ -129,6 +144,59 @@ Retrieve a list of users.
 
 ---
 
+## Testing
+
+This project includes **automated API tests** using ```pytest``` to ensure correctness, security, and authorization behavior.
+
+### What is covered
+  * Login success flow
+  * Invalid credentials handling
+  * Missing payload validation
+  * JWT token generation
+  * Admin-only access enforcement
+  * Unauthorized & invalid token handling
+
+### Test Structure
+```
+test/
+├── conftest.py
+├── test_auth.py
+```
+
+### Sample Scenarios Covered
+  * Successful admin login returns JWT
+  * Invalid password returns ```401```
+  * Missing login payload returns ```400```
+  * Non-admin user accessing admin route returns ```403```
+  * Invalid or missing JWT returns ```401```
+
+### Example (Login Test)
+```
+def test_login_success(client, admin_user):
+    payload = {
+        "username": "admin",
+        "email": admin_user.email,
+        "password": "admin123"
+    }
+
+    response = client.post("/api/v1/auth/login", json=payload)
+
+    assert response.status_code == 200
+    assert "access_token" in response.json()["data"]
+```
+### Running Tests Locally
+```
+pytest
+```
+or
+```
+pytest -v
+```
+
+All tests run against an isolated test database using fixtures.
+
+---
+
 ## API Documentation
 
 Interactive API documentation is available at:
@@ -184,6 +252,9 @@ docker run -p 5000:5000 backend-automation-system
 * All protected endpoints require JWT authentication
 * Token payload is validated on every request
 * Unauthorized access returns `401 / 403` appropriately
+* Role-based authorization enforced at route level
+* Invalid, expired, or missing tokens return appropriate HTTP errors
+* Admin-only routes protected via dependency injection
 
 ---
 
