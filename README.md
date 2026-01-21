@@ -155,6 +155,8 @@ This project includes **automated API tests** using ```pytest``` to ensure corre
   * JWT token generation
   * Admin-only access enforcement
   * Unauthorized & invalid token handling
+  * Pagination validation with consistent response metadata
+  * Boundary condition handling for empty result sets
 
 ### Test Structure
 ```

@@ -130,3 +130,62 @@ def test_get_users_non_admin(client, test_user):
 
     assert response.status_code == 403
 
+
+def test_get_users_pagination(client, db):
+    # Seed 12 users
+    users = [
+        UserModel(
+            user_name=f"user{i}",
+            email=f"user{i}@test.com",
+            password="hashed",
+            role=userRoles.USER,
+        )
+        for i in range(12)
+    ]
+    
+    db.add_all(users)
+    db.commit()
+
+    token = admin_token(client, db)
+
+    response = client.get(
+        f"{AUTH_GET_USERS_URL}?page=2&items_per_page=5",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    
+    assert body["error"] is False
+    assert len(body["data"]["users"]) == 5
+    assert body["data"]["pagination"]["page"] == 2
+    assert body["data"]["pagination"]["items_per_page"] == 5
+    assert body["data"]["pagination"]["total"] == 12 + 1 # 12 users and 1 admin
+
+
+def test_get_users_pagination_page_out_of_range(client, db):
+    # Seed 3 users
+    users = [
+        UserModel(
+            user_name=f"user{i}",
+            email=f"user{i}@test.com",
+            password="hashed",
+            role=userRoles.USER,
+        )
+        for i in range(3)
+    ]
+    db.add_all(users)
+    db.commit()
+
+    token = admin_token(client, db)
+
+    response = client.get(
+        f"{AUTH_GET_USERS_URL}?page=5&limit=5",
+        headers={"Authorization": f"Bearer {token}"}
+    )
+
+    assert response.status_code == 404
+    body = response.json()
+
+    assert body["error"] is True
+    assert body["data"]["message"] == "No users found."

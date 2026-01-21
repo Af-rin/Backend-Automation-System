@@ -18,7 +18,7 @@ class authRegisterUsersRequest(BaseModel):
     role: userRoles
 
 class PaginationModel(BaseModel):
-    total_users: int
+    total: int
     page: int
     items_per_page: int
 
