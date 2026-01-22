@@ -49,25 +49,44 @@ app/
 This system implements **JWT-based authentication with role-based authorization**.
 
 ### Workflow
-1. User logs in via `/auth/login`
-2. Credentials are validated against the database
-3. A signed JWT token is issued with:
-  * user_id
-  * role
-  * expiry
-4. Token is sent in the Authorization header for subsequent requests
+1. Client sends credentials to `/api/v1/auth/login`
+2. Server validates the user against PostgreSQL
+3. On successful authentication:
+   - A JWT access token is generated
+   - Token payload includes user_id, role and expiry
+4. Client sends the token in every request using:
 ```
 Authorization: Bearer <access_token>
 ```
-5. Middleware validates:
+5. Protected endpoints validate the token on each request
+6. Middleware validates:
   * Token existence
   * Token signature
   * Token expiration
-6. Role-based access is enforced at route level
+7. Role-based access is enforced at route level
 
 ### Example
 * ADMIN → can access /auth/getUsers
 * USER → forbidden (`403`)
+
+---
+
+### Request Lifecycle
+1. Incoming request reaches FastAPI router
+2. Authentication middleware validates JWT (for secured routes)
+3. Dependencies inject:
+   - Database session
+   - Current authenticated user
+4. Business logic is executed
+5. Structured JSON response is returned
+
+---
+
+## Design Decisions
+- **JWT Authentication:** Stateless authentication suitable for scalable and distributed systems
+- **Dependency Injection:** Used for database sessions and authentication to keep routes clean and testable
+- **Role-Based Access Control:** Admin-only routes enforced at dependency level
+- **Pagination:** Implemented to prevent large payloads and improve endpoint performance
 
 ---
 
@@ -144,9 +163,12 @@ Retrieve a list of users.
 
 ---
 
-## Testing
+## Testing Strategy
 
 This project includes **automated API tests** using ```pytest``` to ensure correctness, security, and authorization behavior.
+- Fixtures are used to manage:
+  - Test database sessions
+  - Admin and non-admin users
 
 ### What is covered
   * Login success flow
@@ -258,6 +280,18 @@ docker run -p 5000:5000 backend-automation-system
 * Invalid, expired, or missing tokens return appropriate HTTP errors
 * Admin-only routes protected via dependency injection
 
+---
+
+## Production Considerations
+
+- Secrets managed via environment variables
+- JWT expiry enforced on access tokens
+- Designed to run behind an API Gateway / Load Balancer
+- Architecture allows future extension with:
+  - Refresh tokens
+  - Rate limiting
+  - Audit logging
+  
 ---
 
 ## Future Enhancements
